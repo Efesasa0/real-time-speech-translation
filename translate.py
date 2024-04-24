@@ -19,7 +19,7 @@ def listener(audio, device_id, lq):
     while True:
         audio_data = record_audio(audio, device_id)
         lq.put(audio_data)
-        #print(f"@@ added{get_time()}")
+        print(f"@@ added{get_time()} {lq.qsize()}")
 
 def transcriber(model, lq, sq, task="translate"):
     while True:
@@ -32,14 +32,14 @@ def transcriber(model, lq, sq, task="translate"):
                                frame_rate=rate
                                )
         sq.put(audio_text)
-        #print(f"processed{get_time()}")
-        print(audio_text)
+        print(f"processed{get_time()}, {sq.qsize()} new lq{lq.qsize()}")
+        print(f"{audio_text}...")
+        print("\n")
 
 def speaker(sq):
     while True:
         audio_text = sq.get()
         system(f'say {audio_text}')
-        print(sq)
 
 def main():
     if len(sys.argv) != 2:
@@ -49,7 +49,8 @@ def main():
 
     audio = pyaudio.PyAudio()
     audio, device_id = find_device_id(audio, device_name)
-    model = prep("base")
+    model = prep("medium")
+    print("Loaded Model. Now Listening...")
 
     listen_q = queue.Queue()
     speech_q = queue.Queue()
